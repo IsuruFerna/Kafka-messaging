@@ -20,7 +20,8 @@ import java.io.IOException;
 public class AuthController {
     private AblyRest ablyRest;
 
-    private void setAblyRest(@Value( "${ABLY_API_KEY}" ) String apiKey) throws AblyException {
+    @Value( "${ABLY_API_KEY}" )
+    private void setAblyRest(String apiKey) throws AblyException {
         ablyRest = new AblyRest(apiKey);
     }
 

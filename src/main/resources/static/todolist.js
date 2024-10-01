@@ -1,27 +1,29 @@
-function addNewTODO(id, toDoText, username) {
+/* Create a new list item when clicking on the "Add" button */
+function addNewTODO(id, todoText, username) {
     var ul = document.getElementById("todo-list");
     var li = document.createElement("li");
 
-    var t = document.createTextNode(todoText + ' - Added by: ' + username);
+    var t = document.createTextNode(todoText + ' – Added by: ' + username);
     li.appendChild(t);
+    li.id = id;
     ul.appendChild(li);
 
-    /* create a close icon */
+    /* Create a close icon */
     var span = document.createElement("SPAN");
     var txt = document.createTextNode("\u00D7");
     span.className = "close";
     span.appendChild(txt);
     li.appendChild(span);
 
-    span.onClick = () => {
+    span.onclick = () => {
         publishToSpring('DELETE', '/api/' + id);
     }
 }
 
-let closeButtons = document.getElementByClassName('close');
+let closeButtons = document.getElementsByClassName('close');
 for(let i = 0; i < closeButtons.length; i++) {
     let closeButton = closeButtons[i];
-    closeButton.onClick = function() {
+    closeButton.onclick = function() {
         publishToSpring('DELETE', '/api/' + closeButton.parentElement.getAttribute('id'));
     }
 }

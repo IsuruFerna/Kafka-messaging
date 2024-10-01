@@ -11,15 +11,14 @@ import java.util.ArrayList;
 import java.util.List;
 
 @Controller
-public class ToDoListController {
-
+public class TodoListController {
     @Autowired
-    private ToDoItemService toDoItemService;
+    private ToDoItemService todoItemService;
 
     @GetMapping("/")
-    public String toDoPage(Model model) {
-        List<ToDoItem> listItems = toDoItemService.findAll();
-        if(listItems.equals(null)) {
+    public String todoPage(Model model) {
+        List<ToDoItem> listItems = todoItemService.findAll();
+        if (listItems == null) {
             listItems = new ArrayList<>();
         }
         model.addAttribute("todoitems", listItems);

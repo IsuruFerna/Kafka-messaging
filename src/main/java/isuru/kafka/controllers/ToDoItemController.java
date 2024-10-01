@@ -27,7 +27,8 @@ public class ToDoItemController {
 
     private AblyRest ablyRest;
 
-    private void setAblyRest(@Value("${ABLY_API_KEY}") String apikey) throws AblyException {
+    @Value("${ABLY_API_KEY}")
+    private void setAblyRest(String apikey) throws AblyException {
         ablyRest = new AblyRest(apikey);
     }
 
