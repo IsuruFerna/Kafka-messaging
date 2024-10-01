@@ -1,17 +1,66 @@
 package isuru.kafka.controllers;
 
+import io.ably.lib.rest.AblyRest;
+import io.ably.lib.rest.Auth;
+import io.ably.lib.types.AblyException;
+import io.ably.lib.types.Capability;
 import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
+
 import java.io.IOException;
 
 @RestController
 public class AuthController {
+    private AblyRest ablyRest;
+
+    private void setAblyRest(@Value( "${ABLY_API_KEY}" ) String apiKey) throws AblyException {
+        ablyRest = new AblyRest(apiKey);
+    }
+
+    /* Issue token requests to clients sending a request to the /auth endpoint */
+    @RequestMapping("/auth")
+    public String auth(HttpServletRequest request, HttpServletResponse response) throws AblyException {
+        String username = null;
+        Cookie[] cookies = request.getCookies();
+        if (cookies != null) {
+            for (Cookie cookie : cookies) {
+                if (cookie.getName().equalsIgnoreCase("username")) {
+                    username = cookie.getValue();
+                    break;
+                }
+            }
+        }
+        Auth.TokenParams tokenParams = getTokenParams(username);
+        return createTokenRequest(tokenParams, response);
+    }
+
+    public Auth.TokenParams getTokenParams(String username) throws AblyException {
+        Auth.TokenParams tokenParams = new Auth.TokenParams();
+        tokenParams.capability = Capability.c14n("{ '*': ['subscribe'] }");
+        if (username != null) {
+            tokenParams.clientId = username;
+        }
+        return tokenParams;
+    }
+
+    public String createTokenRequest(Auth.TokenParams tokenParams, HttpServletResponse response) {
+        Auth.TokenRequest tokenRequest;
+        try {
+            tokenRequest = ablyRest.auth.createTokenRequest(tokenParams, null);
+            response.setHeader("Content-Type", "application/json");
+            return tokenRequest.asJson();
+        } catch (AblyException e) {
+            response.setStatus(500);
+            return "Error requesting token: " + e.getMessage();
+        }
+    }
 
     /* set a cookie when the user logs in */
     @RequestMapping(value = "/login", method = RequestMethod.GET)

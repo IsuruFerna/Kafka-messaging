@@ -6,12 +6,12 @@ Content-Type: application/json
 }
 
 ###
-POST http://127.0.0.1:8080/api
+POST http://localhost:8080/api
 Content-Type: application/json
-Cookie: username=Bob
+Cookie: username=foo
 
 {
-    "text": "Go to the shops!"
+    "text": "Go for a run!"
 }
 
 ###

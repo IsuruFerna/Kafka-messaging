@@ -1,10 +1,13 @@
 package isuru.kafka.controllers;
 
+import io.ably.lib.rest.AblyRest;
+import io.ably.lib.types.AblyException;
 import io.ably.lib.util.JsonUtils;
 import isuru.kafka.entities.ToDoItem;
 import isuru.kafka.services.ToDoItemService;
 import jakarta.servlet.Servlet;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
@@ -12,6 +15,7 @@ import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
 import java.net.URI;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Optional;
 
 @RestController
@@ -20,6 +24,14 @@ public class ToDoItemController {
 
     @Autowired
     private ToDoItemService toDoItemService;
+
+    private AblyRest ablyRest;
+
+    private void setAblyRest(@Value("${ABLY_API_KEY}") String apikey) throws AblyException {
+        ablyRest = new AblyRest(apikey);
+    }
+
+    private final String CHANNEL_NAME = "default";
 
     @GetMapping
     public ResponseEntity<List<ToDoItem>> findAll() {
@@ -50,6 +62,7 @@ public class ToDoItemController {
         object.add("username", username);
         object.add("id", newItem.getId().toString());
 
+        publishToChannel("add", object.toJson());
         return ResponseEntity.created(location).body(newItem);
     }
 
@@ -58,6 +71,7 @@ public class ToDoItemController {
         Optional<ToDoItem> updated = toDoItemService.updateCompletionStatus(id, true);
 
         return updated.map(value -> {
+            publishToChannel("complete", Long.toString(id));
             return ResponseEntity.ok().body(value);
         }).orElseGet(() -> ResponseEntity.notFound().build());
     }
@@ -67,6 +81,7 @@ public class ToDoItemController {
         Optional<ToDoItem> updated = toDoItemService.updateCompletionStatus(id, false);
         return updated
                 .map(value -> {
+                    publishToChannel("incomplete", Long.toString(id));
                     return ResponseEntity.ok().body(value);
                 })
                 .orElseGet(() -> ResponseEntity.notFound().build());
@@ -84,8 +99,19 @@ public class ToDoItemController {
 
         if(todoOptional.get().getUsername().equals(username)) {
             toDoItemService.delete(id);
+            publishToChannel("remove", Long.toString(id));
         }
         return ResponseEntity.noContent().build();
+    }
+
+    private boolean publishToChannel(String name, Object data) {
+        try {
+            ablyRest.channels.get(CHANNEL_NAME).publish(name, data);
+        } catch (AblyException err) {
+            System.out.println(err.errorInfo);
+            return false;
+        }
+        return true;
     }
 
 }
