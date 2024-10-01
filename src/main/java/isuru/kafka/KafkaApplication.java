@@ -13,14 +13,14 @@ public class KafkaApplication {
 		SpringApplication.run(KafkaApplication.class, args);
 	}
 
-	@Bean
-	CommandLineRunner commandLineRunner(KafkaTemplate<String, String> kafkaTemplate) {
-		return args -> {
-			for (int i = 0; i < 10; i++) {
-				kafkaTemplate.send("amigoscode", "hello kafka :) " + i);
-			}
-
-		};
-	}
+//	@Bean
+//	CommandLineRunner commandLineRunner(KafkaTemplate<String, String> kafkaTemplate) {
+//		return args -> {
+//			for (int i = 0; i < 10; i++) {
+//				kafkaTemplate.send("amigoscode", "hello kafka :) " + i);
+//			}
+//
+//		};
+//	}
 
 }

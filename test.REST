@@ -4,3 +4,15 @@ Content-Type: application/json
 {
     "message": "Hooray Amigoscode 💪"
 }
+
+###
+POST http://127.0.0.1:8080/api
+Content-Type: application/json
+Cookie: username=Bob
+
+{
+    "text": "Go to the shops!"
+}
+
+###
+GET http://127.0.0.1:8080/api
